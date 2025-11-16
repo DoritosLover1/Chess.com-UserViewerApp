@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:chess_viewer/Classes/PlayerProfile.dart';
+import 'package:chess_viewer/Classes/PlayerStats.dart';
 import 'package:http/http.dart' as http;
 
 class ChessApiService {
@@ -21,6 +22,23 @@ class ChessApiService {
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);
         return PlayerProfile.fromJson(jsonData);
+      } else {
+        throw Exception('There is not kinda user such as given one: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Please, try again in time: $e');
+    }
+  }
+
+  Future<PlayerStats> getPlayerStats(String username) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/player/$username/stats'),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = json.decode(response.body);
+        return PlayerStats.fromJson(jsonData);
       } else {
         throw Exception('There is not kinda user such as given one: ${response.statusCode}');
       }
