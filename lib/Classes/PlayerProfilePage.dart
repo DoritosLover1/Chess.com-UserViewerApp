@@ -2,6 +2,7 @@ import 'package:chess_viewer/Classes/PlayerProfile.dart';
 import 'package:chess_viewer/Classes/PlayerStats.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
 
 class PlayerProfilePage extends StatefulWidget {
   final PlayerProfile profile;
@@ -18,6 +19,24 @@ class PlayerProfilePage extends StatefulWidget {
 }
 
 class _PlayerProfilePage extends State<PlayerProfilePage> {
+
+    String _formatLastOnline(int? timestamp) {
+    if (timestamp == null) return 'Unknown';
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hours ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minutes ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,6 +124,10 @@ class _PlayerProfilePage extends State<PlayerProfilePage> {
 
               if (widget.stats.puzzleRush != null)
                 _buildPuzzleRushCard(widget.stats.puzzleRush!),
+              
+              const SizedBox(height: 15),
+
+              _buildShareButtons(widget.profile, widget.stats)
             ],
           ),
         )
@@ -425,6 +448,57 @@ class _PlayerProfilePage extends State<PlayerProfilePage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildShareButtons(PlayerProfile pp, PlayerStats ps) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 10.0),
+      child: Material(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        clipBehavior: Clip.antiAlias,
+        color: const Color.fromARGB(255, 98, 175, 67),
+        child:MaterialButton(
+          elevation: 3.0,
+          onPressed: () async {
+            await SharePlus.instance.share(
+              ShareParams(text: 
+                Text("""
+------------PLAYER INFORMATIONS------------
+• ${pp.username},
+• ${pp.status},
+• ${_formatLastOnline(pp.lastOnline)},
+------------PLAYER DETAILED INFORMATIONS------------
+• FIDE:
+  • ${ps.fideRating},
+• Blitz:
+  • ${ps.chessBlitz?.best?.rating},
+  • ${ps.chessBlitz?.last?.rating},
+• Bullet:
+  • ${ps.chessBullet?.best?.rating},
+  • ${ps.chessBullet?.last?.rating},
+• Daily:
+  • ${ps.chessDaily?.best?.rating},
+  • ${ps.chessDaily?.last?.rating},
+• Tactics:
+  • ${ps.tactics?.highest?.rating},
+  • ${ps.tactics?.lowest?.rating},
+            """).data 
+            )
+          );
+        },
+        child: Text(
+          "Share",
+          style: GoogleFonts.lato(
+            fontSize: 14,
+            color: Colors.white,
+            fontWeight: FontWeight.bold
+          ),
+        ),
+      ),
+      ), 
     );
   }
 }
